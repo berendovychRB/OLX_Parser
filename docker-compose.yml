@@ -1,0 +1,28 @@
+version: '3.7'
+
+services:
+  api:
+    build: .
+    container_name: "riaParser-api-container"
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8080 --reload
+    restart: always
+    ports:
+      - "8080:8080"
+    volumes:
+      - .:/usr/src/fastapi
+    depends_on:
+      - mongodb
+
+  mongodb:
+    image: mongo
+    container_name: "container-mongodb"
+    volumes:
+      - mongo_data:/var/lib/mongodb/data/
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=test
+      - MONGO_INITDB_ROOT_PASSWORD=test
+    ports:
+      - "27014:27014"
+
+volumes:
+  mongo_data:
