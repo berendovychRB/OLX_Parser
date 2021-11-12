@@ -1,16 +1,21 @@
 import requests
 from bs4 import BeautifulSoup
 
-URL = "https://www.olx.ua/uk/list/q-mazda/"
-HEADERS = {
-    "user-agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/94.0.4606.71 Safari/537.36",
-    "accept": "*/*",
-}
+from app.config import settings
 
 
 def get_html(url, params=None):
-    r = requests.get(url=url, headers=HEADERS, params=params)
+    r = requests.get(url=url, headers=settings.HEADERS, params=params)
     return r
+
+
+def get_pages_count(html):
+    soup = BeautifulSoup(html, "html.parser")
+    pagination = soup.find_all("span", class_="item")
+    if pagination:
+        return int(pagination[-1].get_text())
+    else:
+        return 1
 
 
 def get_content(html):
@@ -20,27 +25,33 @@ def get_content(html):
     posts = []
     for item in items:
         image = item.find("img", class_="fleft")
+        price = item.find("p", class_="price")
         if image:
             image = image.get("src")
-        else:
-            image = "----"
+        if price:
+            price = price.get_text(strip=True)
         posts.append(
             {
                 "title": item.find("a", class_="link").get_text(strip=True),
-                "price": item.find("p", class_="price").get_text(strip=True),
+                "price": price,
                 "location": item.find("small", class_="breadcrumb").find_next("small", class_="breadcrumb").get_text(strip=True),
                 "image": image,
                 "link": item.find("a", class_="detailsLink").get("href"),
             }
         )
-    for post in posts:
-        print(post)
+    return posts
 
 
 def parse():
-    html = get_html(URL)
+    html = get_html(settings.URL)
     if html.status_code == 200:
-        get_content(html.text)
+        posts = []
+        pages_count = get_pages_count(html.text)
+        for page in range(1, pages_count + 1):
+            print(f"Parsing page {page}/{pages_count}...")
+            html = get_html(settings.URL, params={"page": page})
+            posts.extend(get_content(html.text))
+        print(posts)
     else:
         print("Error")
 
