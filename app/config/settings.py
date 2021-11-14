@@ -3,4 +3,4 @@ HEADERS = {
     "accept": "*/*",
 }
 
-URL = "https://www.olx.ua/uk/list/q-mazda/"
+URL = "https://www.olx.ua/uk/transport/"
