@@ -1,4 +1,4 @@
-# Parser for AUTORIA
+# Parser for OLX
 ## It uses FastAPI and MongoDB
 
 
